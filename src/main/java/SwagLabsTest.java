@@ -1,46 +1,53 @@
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+import java.util.List;
+
 public class SwagLabsTest {
 
     public static void main(String[] args) throws InterruptedException {
-        String username = "standard_user";
-        String password = "secret_sauce";
 
-        String wrongUsername = "Mohan_user";
-        String wrongPassword = "123_sauce";
         WebDriver driver = new ChromeDriver();
         driver.get("https://www.saucedemo.com/");
-        //testing wrong credientials
-        login(driver, wrongUsername, wrongPassword);
-        Thread.sleep(2000);
-        driver.get("https://www.saucedemo.com/");
-        // Login to Swag Labs
-        login(driver, username, password);
-        Thread.sleep(2000);
-
-        // Select a product and add it to the cart
-        selectProduct(driver, "Sauce Labs Backpack");
-        Thread.sleep(2000);
-
-        addToCart(driver);
-        Thread.sleep(2000);
-
-
-        // Remove the product from the cart
-        removeFromCart(driver);
-        Thread.sleep(2000);
-
-
-        // Checkout
-        checkout(driver);
-        Thread.sleep(2000);
-
+        WebElement username = driver.findElement(By.className("login_credentials"));
+        WebElement password = driver.findElement(By.className("login_password"));
+        String usernameList[] = username.getText().split("\n");
+        String passwordList[] = password.getText().split("\n");
+        for (int i = 1; i < usernameList.length; i++) {
+            driver.get("https://www.saucedemo.com/");
+            for (int j = 1; j < passwordList.length; j++) {
+//                login(driver, usernameList[i], passwordList[j]);
+                System.out.println("Elements are: " + usernameList[i]);
+                System.out.println("Elements are: " + passwordList[j]);
+                login(driver, usernameList[i], passwordList[j]);
+                Thread.sleep(2000);
+                // Select a product and add it to the cart
+                try {
+                    WebElement element = driver.findElement(By.className("inventory_item_name"));
+                    String productName = element.getText();
+                    System.out.println("productName == " + productName);
+                    selectProduct(driver, productName);
+                    Thread.sleep(2000);
+                    addToCart(driver, productName);
+                    Thread.sleep(2000);
+                    // Remove the product from the cart
+                    removeFromCart(driver, productName);
+                    Thread.sleep(2000);
+                    // Checkout
+                    checkout(driver);
+                    Thread.sleep(3000);
+                } catch (Exception e) {
+                }
+            }
+        }
 
         driver.quit();
+
     }
+
 
     public static void login(WebDriver driver, String username, String password) {
         WebElement usernameField = driver.findElement(By.id("user-name"));
@@ -57,13 +64,17 @@ public class SwagLabsTest {
         productLink.click();
     }
 
-    public static void addToCart(WebDriver driver) {
-        WebElement addToCartButton = driver.findElement(By.name("add-to-cart-sauce-labs-backpack"));
+    public static void addToCart(WebDriver driver, String name) {
+        String id = name.replaceAll(" ", "-");
+        String newName = "add-to-cart-" + id;
+        WebElement addToCartButton = driver.findElement(By.name(newName.toLowerCase()));
         addToCartButton.click();
     }
 
-    public static void removeFromCart(WebDriver driver) {
-        WebElement removeButton = driver.findElement(By.name("remove-sauce-labs-backpack"));
+    public static void removeFromCart(WebDriver driver, String name) {
+        String id = name.replaceAll(" ", "-");
+        String newName = "remove-" + id;
+        WebElement removeButton = driver.findElement(By.name(newName.toLowerCase()));
         removeButton.click();
     }
 
